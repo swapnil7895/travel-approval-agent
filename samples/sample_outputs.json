@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "claim_id": "CLM101",
+    "decision": "APPROVED",
+    "approved_amount": 4500.0,
+    "requested_amount": 4500.0,
+    "deducted_amount": 0.0,
+    "missing_documents": [],
+    "policy_reference": "Metro cities (Mumbai, Delhi, Bangalore, Hyderabad, Chennai, Pune): \u20b95000 per night",
+    "confidence": "HIGH",
+    "explanation": "The claim is approved as all required documents are attached, it is not a duplicate, and the amount is within the policy limit for hotel accommodation in Hyderabad.",
+    "manual_review_reason": null,
+    "tools_used": [
+      "ReceiptCheck",
+      "DuplicateDetector",
+      "PolicyLookup",
+      "ThresholdValidator"
+    ]
+  }
+]

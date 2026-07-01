@@ -21,9 +21,11 @@ This is a working prototype of an AI-assisted Travel Reimbursement Approval Agen
     ```
 
 3.  **Set up environment variables:**
-    Copy `.env.example` to `.env` and add your Gemini API key (from Google AI Studio):
+    Copy `.env.example` to `.env` and configure your API keys and models:
     ```
-    GEMINI_API_KEY=your_gemini_api_key
+    LLM_PROVIDER=google
+    LLM_MODELS=gemini-3.5-flash,gemini-2.5-flash
+    GOOGLE_API_KEY=your_gemini_api_key
     ```
 
 ## How to Run
@@ -33,7 +35,6 @@ To process the sample claims provided in `samples/sample_claims.json` and save t
 ```bash
 python cli.py
 ```
-You will see the agent's verbose reasoning steps in the terminal for each claim.
 
 ### Option 2: Run via FastAPI (Interactive API)
 To start the API server:
@@ -46,14 +47,14 @@ uvicorn app.main:app --reload
 
 ## Design Choices & Architecture
 
-- **LLM Choice:** Used `gemini-1.5-flash` via `ChatGoogleGenerativeAI`. It's fast, cost-effective (free tier), and capable of following the zero-shot ReAct prompt logic.
-- **Agent Framework:** LangChain's `ZERO_SHOT_REACT_DESCRIPTION` agent pattern was selected. It allows the agent to iteratively determine which tool to use based on the tool descriptions and the system prompt.
+- **LLM Choice & Fallbacks:** The app uses a dynamic LLM Factory (`app/utils.py`) that is completely provider-agnostic. It reads a comma-separated list of models from `.env` (e.g., `gemini-3.5-flash,gemini-2.5-flash`), sets the first as the primary, and automatically configures the rest as fallback models to seamlessly route around strict free-tier rate limits.
+- **Agent Framework:** Built using LangGraph's modern `create_react_agent`. It allows the agent to iteratively determine which tool to use based on the tool descriptions and the system prompt, providing far more reliability than older agent types.
 - **Data Storage:** Kept it lightweight with local JSON files as requested. This avoids the overhead of setting up a database for a prototype.
-- **Validation:** Pydantic models (`TravelClaim`, `ClaimDecision`) ensure strict validation of inputs and outputs, which is critical for structured data tasks.
+- **Validation:** Pydantic models (`ClaimDecision`) ensure strict validation of inputs and outputs, which is critical for structured data tasks.
 
 ## Trade-offs
 
-- **Strict Schema Enforcement:** While Pydantic helps, LangChain zero-shot agents sometimes struggle to perfectly format the final output as raw JSON (often adding markdown wrappers). The output is sanitized manually (`response.strip()`) before parsing. In a production environment, OpenAI's function calling or LangChain's structured output parsers would be more robust.
+- **Strict Schema Enforcement:** While Pydantic helps, ReAct agents sometimes struggle to perfectly format the final output as raw JSON (often adding conversational text). We implemented a robust Regular Expression extraction to pull the JSON block out of the model's string, preventing `JSONDecodeErrors`. In a production environment, OpenAI's strict function calling or LangChain's `with_structured_output` would be natively integrated.
 - **Stateless Tools:** The tools are pure functions that read from the file system. In a highly concurrent production setting, this would cause race conditions (especially with duplicate checking and state).
 
 ## Assumptions & Limitations

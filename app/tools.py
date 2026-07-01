@@ -7,6 +7,9 @@ These are wrapped as LangChain Tool objects in agent.py.
 """
 
 from app.utils import load_policy_text, load_limits, load_submitted_claims
+from app.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 REQUIRED_FIELDS = ["claim_id", "employee_id", "date", "amount",
@@ -20,6 +23,7 @@ def policy_lookup(category: str) -> str:
     """
     policy_text = load_policy_text()
     category = category.lower().strip()
+    logger.info(f"Looking up policy for category: {category}")
 
     section_map = {
         "meal": "## 1. Meal Allowance",
@@ -47,6 +51,7 @@ def receipt_completeness_check(claim: dict) -> dict:
     Tool 2: Verify that a claim has all required fields populated.
     Returns: {"complete": bool, "missing_fields": [list of field names]}
     """
+    logger.info(f"Checking receipt completeness for claim ID: {claim.get('claim_id')}")
     missing = []
     for field in REQUIRED_FIELDS:
         value = claim.get(field, None)
@@ -72,6 +77,7 @@ def threshold_validator(category: str, amount: float, city: str = "") -> dict:
     limits = load_limits()
     category = category.lower().strip()
     city = (city or "").lower().strip()
+    logger.info(f"Validating threshold for category: {category}, amount: {amount}")
 
     if category == "hotel":
         cfg = limits["hotel"]
@@ -102,6 +108,7 @@ def duplicate_detector(employee_id: str, date: str, amount: float) -> dict:
     has already been submitted previously.
     Returns: {"is_duplicate": bool, "original_claim_id": str | None}
     """
+    logger.info(f"Detecting duplicates for employee: {employee_id}, date: {date}, amount: {amount}")
     submitted = load_submitted_claims()
     for c in submitted:
         if (c["employee_id"] == employee_id and

@@ -9,8 +9,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Initialize the LLM
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+from app.utils import get_llm
+from app.logger import get_logger
+
+logger = get_logger(__name__)
+
+# Initialize the LLM using our dynamic factory
+llm = get_llm()
 
 def receipt_check_wrapper(claim_json: str) -> str:
     claim = json.loads(claim_json)
@@ -89,10 +94,13 @@ Combine the findings and output a structured JSON decision. The output MUST exac
 agent = create_react_agent(
     model=llm,
     tools=tools,
-    prompt=system_message
+    prompt=system_message,
+    debug=False  # Enables an audit trail of reasoning and tool calls in the terminal
 )
 
 def process_claim(claim_dict: dict) -> ClaimDecision:
+    claim_id = claim_dict.get("claim_id", "UNKNOWN")
+    logger.info(f"Starting to process claim ID: {claim_id}")
     input_text = f"Process this claim and return ONLY the JSON result according to your instructions: {json.dumps(claim_dict)}"
     
     result = agent.invoke({"messages": [("user", input_text)]})
@@ -103,12 +111,14 @@ def process_claim(claim_dict: dict) -> ClaimDecision:
         response = "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in response)
         
     # Clean up response to ensure it's valid JSON
-    response = response.strip()
-    if response.startswith("```json"):
-        response = response[7:-3]
-    elif response.startswith("```"):
-        response = response[3:-3]
+    import re
+    match = re.search(r'\{.*\}', response, re.DOTALL)
+    if match:
+        response = match.group(0)
+    else:
+        response = "{}" # Fallback if no JSON found
         
-    response = response.strip()
     decision_dict = json.loads(response)
+    logger.info(f"Finished processing claim ID: {claim_id} with decision: {decision_dict.get('decision')}")
+    # Filter out missing keys for ClaimDecision model if needed, or let Pydantic handle it
     return ClaimDecision(**decision_dict)

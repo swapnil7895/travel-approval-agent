@@ -38,3 +38,35 @@ def save_submitted_claim(claim_id: str, employee_id: str, date: str, amount: flo
     })
     with open(path, "w") as f:
         json.dump(claims, f, indent=2)
+
+
+def get_llm():
+    """Factory to create LLM with fallbacks dynamically based on env config."""
+    provider = os.getenv("LLM_PROVIDER", "google").lower()
+    # Read a comma-separated list of models from the environment
+    models_str = os.getenv("LLM_MODELS", "gemini-3.5-flash")
+    model_names = [m.strip() for m in models_str.split(",") if m.strip()]
+    
+    if not model_names:
+        raise ValueError("No models specified in LLM_MODELS")
+        
+    def _create_model(model_name: str):
+        if provider == "google":
+            from langchain_google_genai import ChatGoogleGenerativeAI
+            # We set max_retries=0 so it fails fast on quota limits and triggers the fallback
+            return ChatGoogleGenerativeAI(model=model_name, temperature=0, max_retries=0)
+        elif provider == "openai":
+            from langchain_openai import ChatOpenAI
+            return ChatOpenAI(model=model_name, temperature=0, max_retries=0)
+        else:
+            raise ValueError(f"Unsupported provider: {provider}")
+            
+    primary_llm = _create_model(model_names[0])
+    
+    fallbacks = []
+    for model_name in model_names[1:]:
+        fallbacks.append(_create_model(model_name))
+        
+    if fallbacks:
+        return primary_llm.with_fallbacks(fallbacks)
+    return primary_llm

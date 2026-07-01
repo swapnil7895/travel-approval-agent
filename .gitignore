@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 venv/
 HANDOFF.md
+logs/*
+!logs/sample_log_*

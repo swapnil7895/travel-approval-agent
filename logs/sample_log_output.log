@@ -1,0 +1,8 @@
+[2026-07-02 02:47:32] [INFO] [__main__] - Loading claims from D:\Work_and_School\Projects\ClaimAgent\samples\sample_claims.json...
+[2026-07-02 02:47:32] [INFO] [app.agent] - Starting to process claim ID: CLM101
+[2026-07-02 02:47:35] [INFO] [app.tools] - Checking receipt completeness for claim ID: CLM101
+[2026-07-02 02:47:37] [INFO] [app.tools] - Detecting duplicates for employee: EMP****, date: 2026-06-20, amount: 4500
+[2026-07-02 02:47:38] [INFO] [app.tools] - Looking up policy for category: hotel
+[2026-07-02 02:47:42] [INFO] [app.tools] - Validating threshold for category: hotel, amount: 4500
+[2026-07-02 02:47:44] [INFO] [app.agent] - Finished processing claim ID: CLM101 with decision: APPROVED
+[2026-07-02 02:47:44] [INFO] [__main__] - Successfully processed CLM101 with result APPROVED
