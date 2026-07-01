@@ -1,0 +1,21 @@
+{
+  "meal": {
+    "daily_limit": 500,
+    "description": "Combined daily meal allowance (breakfast+lunch+dinner)"
+  },
+  "hotel": {
+    "metro_limit": 5000,
+    "non_metro_limit": 3000,
+    "metro_cities": ["mumbai", "delhi", "bangalore", "hyderabad", "chennai", "pune"],
+    "description": "Per night hotel limit"
+  },
+  "transport": {
+    "taxi_limit": 1000,
+    "public_limit": 500,
+    "description": "Per day local transport limit"
+  },
+  "flight": {
+    "class": "economy",
+    "description": "Business class requires VP approval"
+  }
+}

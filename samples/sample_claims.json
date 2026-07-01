@@ -1,0 +1,62 @@
+[
+  {
+    "claim_id": "CLM101",
+    "employee_id": "EMP2001",
+    "employee_name": "Rahul Sharma",
+    "date": "2026-06-20",
+    "category": "hotel",
+    "amount": 4500,
+    "vendor": "Taj Hotel Hyderabad",
+    "city": "hyderabad",
+    "receipt_attached": true,
+    "description": "2 nights stay for client visit"
+  },
+  {
+    "claim_id": "CLM102",
+    "employee_id": "EMP2002",
+    "employee_name": "Priya Nair",
+    "date": "2026-06-21",
+    "category": "meal",
+    "amount": 800,
+    "vendor": "Local Restaurant",
+    "city": "pune",
+    "receipt_attached": true,
+    "description": "Team dinner during onsite visit"
+  },
+  {
+    "claim_id": "CLM103",
+    "employee_id": "EMP2003",
+    "employee_name": "Amit Verma",
+    "date": "2026-06-22",
+    "category": "transport",
+    "amount": 1200,
+    "vendor": "Local Cab Service",
+    "city": "bangalore",
+    "receipt_attached": false,
+    "description": "Cab from airport to client office"
+  },
+  {
+    "claim_id": "CLM104",
+    "employee_id": "EMP1023",
+    "employee_name": "Sneha Reddy",
+    "date": "2026-06-15",
+    "category": "hotel",
+    "amount": 4500,
+    "vendor": "Taj Hotel Hyderabad",
+    "city": "hyderabad",
+    "receipt_attached": true,
+    "description": "Duplicate of an already submitted claim"
+  },
+  {
+    "claim_id": "CLM105",
+    "employee_id": "EMP2005",
+    "employee_name": "Karan Mehta",
+    "date": "2026-06-23",
+    "category": "team_offsite",
+    "amount": 15000,
+    "vendor": "Resort Booking Pvt Ltd",
+    "city": "lonavala",
+    "receipt_attached": true,
+    "description": "Team offsite event for quarterly planning"
+  }
+]
