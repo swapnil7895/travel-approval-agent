@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Travel Claim Agent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ═══════════════════════════════════════════════
+       DARK THEME  — Claude Code inspired
+       Warm charcoal bg, crisp off-white text,
+       coral/amber accent, monospace feel
+    ═══════════════════════════════════════════════ */
+    [data-theme="dark"] {
+      --bg:          #1a1a1a;
+      --bg2:         #141414;
+      --surface:     #222222;
+      --surface2:    #2a2a2a;
+      --border:      #333333;
+      --border2:     #3d3d3d;
+      --accent:      #d97757;   /* warm coral — Claude Code's orange */
+      --accent2:     #e8916e;
+      --accent-glow: rgba(217,119,87,.20);
+      --text:        #ececec;
+      --text2:       #b0b0b0;
+      --muted:       #666666;
+      --green:       #4ade80;
+      --red:         #f87171;
+      --yellow:      #fbbf24;
+      --blue:        #60a5fa;
+      --user-bubble: #2e2e2e;
+      --user-border: #3d3d3d;
+      --user-text:   #ececec;
+      --radius:      12px;
+      --font-mono:   'JetBrains Mono', monospace;
+    }
+
+    /* ═══════════════════════════════════════════════
+       LIGHT THEME  — Gemini inspired
+       Pure white bg, deep navy text,
+       Google blue-violet gradient accent
+    ═══════════════════════════════════════════════ */
+    [data-theme="light"] {
+      --bg:          #f8f9fc;
+      --bg2:         #f0f2f8;
+      --surface:     #ffffff;
+      --surface2:    #f3f4f8;
+      --border:      #e0e3ec;
+      --border2:     #d0d3df;
+      --accent:      #1b6ef3;   /* Gemini blue */
+      --accent2:     #7c3aed;   /* Gemini violet */
+      --accent-glow: rgba(27,110,243,.12);
+      --text:        #1a1d2e;
+      --text2:       #3d4166;
+      --muted:       #8b90a8;
+      --green:       #16a34a;
+      --red:         #dc2626;
+      --yellow:      #d97706;
+      --blue:        #1b6ef3;
+      --user-bubble: linear-gradient(135deg, #1b6ef3, #7c3aed);
+      --user-border: transparent;
+      --user-text:   #ffffff;
+      --radius:      12px;
+      --font-mono:   'JetBrains Mono', monospace;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;          /* page never grows — only #messages scrolls */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background .25s, color .25s;
+    }
+
+    /* ── Header ─────────────────────────────── */
+    header {
+      width: 100%;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;            /* header never shrinks */
+      transition: background .25s, border-color .25s;
+    }
+
+    .logo {
+      width: 32px; height: 32px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    [data-theme="dark"] .logo { background: var(--surface2); border: 1px solid var(--border2); }
+    [data-theme="light"] .logo { background: linear-gradient(135deg, #1b6ef3, #7c3aed); }
+
+    header h1 {
+      font-size: 15px; font-weight: 600;
+      letter-spacing: -.01em;
+    }
+
+    .header-right {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .header-sub {
+      font-size: 12px; color: var(--muted);
+    }
+
+    /* ── Theme toggle button ─────────────────── */
+    #theme-toggle {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+      color: var(--text2);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s, border-color .2s, color .2s;
+      white-space: nowrap;
+    }
+    #theme-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    #theme-toggle .icon { font-size: 14px; }
+
+    /* ── Container ───────────────────────────── */
+    .container {
+      width: 100%; max-width: 700px;
+      flex: 1;
+      min-height: 0;             /* critical: allows flex child to shrink below content size */
+      display: flex;
+      flex-direction: column;
+      padding: 28px 16px 24px;
+      overflow: hidden;
+    }
+
+    /* ── Hero ────────────────────────────────── */
+    #hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      text-align: center;
+      padding: 48px 0;
+    }
+
+    .hero-icon {
+      width: 68px; height: 68px;
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px;
+      position: relative;
+    }
+    [data-theme="dark"] .hero-icon {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      box-shadow: 0 0 40px var(--accent-glow);
+    }
+    [data-theme="light"] .hero-icon {
+      background: linear-gradient(135deg, #1b6ef3, #7c3aed);
+      box-shadow: 0 8px 32px rgba(27,110,243,.25);
+    }
+
+    #hero h2 {
+      font-size: 24px; font-weight: 700;
+      letter-spacing: -.02em;
+      line-height: 1.3;
+    }
+    [data-theme="light"] #hero h2 {
+      background: linear-gradient(135deg, #1a1d2e, #3d4166);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    #hero p {
+      font-size: 14px; color: var(--muted);
+      max-width: 360px; line-height: 1.65;
+    }
+
+    /* ── Feature pills on hero ── */
+    .hero-pills {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+      margin-top: 4px;
+    }
+    .pill {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      background: var(--surface);
+    }
+
+    .start-btn {
+      margin-top: 6px;
+      padding: 13px 32px;
+      border-radius: 24px;
+      border: none;
+      font-family: inherit;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .2s, opacity .15s;
+    }
+    [data-theme="dark"] .start-btn {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    [data-theme="dark"] .start-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(217,119,87,.35);
+    }
+    [data-theme="light"] .start-btn {
+      background: linear-gradient(135deg, #1b6ef3, #7c3aed);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(27,110,243,.3);
+    }
+    [data-theme="light"] .start-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(27,110,243,.4);
+    }
+    .start-btn:active { transform: translateY(0); }
+
+    /* ── Chat view ───────────────────────────── */
+    #chat-view { display: none; flex: 1; min-height: 0; flex-direction: column; gap: 10px; }
+    #chat-view.visible { display: flex; }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: 4px;
+      scroll-behavior: smooth;
+    }
+    #messages::-webkit-scrollbar { width: 3px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ── Bubbles ─────────────────────────────── */
+    .msg { display: flex; gap: 9px; animation: fadeUp .22s ease; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .msg.agent { align-items: flex-start; }
+    .msg.user  { align-items: flex-start; flex-direction: row-reverse; }
+
+    .avatar {
+      width: 30px; height: 30px; flex-shrink: 0;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    [data-theme="dark"] .agent .avatar {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+    }
+    [data-theme="light"] .agent .avatar {
+      background: linear-gradient(135deg, #1b6ef3, #7c3aed);
+    }
+    .user .avatar {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+    }
+
+    .bubble {
+      max-width: 80%;
+      padding: 11px 15px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      line-height: 1.65;
+      transition: background .25s, border-color .25s;
+    }
+    .agent .bubble {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-top-left-radius: 3px;
+      color: var(--text);
+    }
+
+    /* User bubble — dark: warm charcoal / light: gradient */
+    [data-theme="dark"] .user .bubble {
+      background: var(--user-bubble);
+      border: 1px solid var(--user-border);
+      color: var(--user-text);
+      border-top-right-radius: 3px;
+    }
+    [data-theme="light"] .user .bubble {
+      background: var(--user-bubble);
+      border: 1px solid var(--user-border);
+      color: var(--user-text);
+      border-top-right-radius: 3px;
+    }
+
+    /* ── Typing dots ─────────────────────────── */
+    .typing { display: flex; gap: 5px; align-items: center; padding: 12px 14px; }
+    .typing span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--muted);
+      animation: bounce .85s ease infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: .15s; }
+    .typing span:nth-child(3) { animation-delay: .30s; }
+    @keyframes bounce {
+      0%,80%,100% { transform: translateY(0); opacity: .6; }
+      40%          { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* ── Input bar ───────────────────────────── */
+    #input-area {
+      display: flex; gap: 8px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      transition: border-color .25s;
+    }
+    #user-input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 11px 18px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s, background .25s;
+    }
+    #user-input::placeholder { color: var(--muted); }
+    #user-input:focus { border-color: var(--accent); }
+
+    #send-btn {
+      width: 42px; height: 42px; flex-shrink: 0;
+      border-radius: 50%; border: none;
+      font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform .15s, box-shadow .15s, opacity .15s;
+    }
+    [data-theme="dark"] #send-btn {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 12px var(--accent-glow);
+    }
+    [data-theme="dark"] #send-btn:hover { transform: scale(1.08); box-shadow: 0 4px 20px rgba(217,119,87,.4); }
+    [data-theme="light"] #send-btn {
+      background: linear-gradient(135deg, #1b6ef3, #7c3aed);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(27,110,243,.3);
+    }
+    [data-theme="light"] #send-btn:hover { transform: scale(1.08); box-shadow: 0 4px 20px rgba(27,110,243,.4); }
+    #send-btn:disabled { opacity: .35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* ── Chips ───────────────────────────────── */
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+    .chip {
+      padding: 5px 13px; border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: var(--surface);
+      color: var(--text2);
+      font-family: inherit; font-size: 13px;
+      cursor: pointer;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    [data-theme="dark"]  .chip:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+    [data-theme="light"] .chip:hover { background: #1b6ef3; border-color: #1b6ef3; color: #fff; }
+
+    /* ── Loader ──────────────────────────────── */
+    #loader {
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 14px; padding: 36px 0 16px;
+    }
+    #loader.visible { display: flex; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 2.5px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loader p { font-size: 13px; color: var(--muted); }
+    [data-theme="dark"]  #loader p { font-family: var(--font-mono); }
+
+    /* ── Inline error ────────────────────────── */
+    .error-note { font-size: 12px; color: var(--red); margin-top: 4px; padding-left: 2px; }
+
+    /* ── Result card ─────────────────────────── */
+    .result-card {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .result-header {
+      padding: 15px 18px;
+      display: flex; align-items: center; gap: 11px;
+      border-bottom: 1px solid var(--border);
+    }
+    .decision-badge {
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: .07em; text-transform: uppercase;
+    }
+    .badge-APPROVED           { background: rgba(74,222,128,.12); color: var(--green); }
+    .badge-PARTIALLY_APPROVED { background: rgba(251,191,36,.12); color: var(--yellow); }
+    .badge-REJECTED           { background: rgba(248,113,113,.12); color: var(--red); }
+    .badge-MANUAL_REVIEW      { background: rgba(96,165,250,.12); color: var(--blue); }
+
+    .result-body { padding: 18px; display: flex; flex-direction: column; gap: 13px; }
+    .result-row { display: flex; justify-content: space-between; font-size: 13px; align-items: baseline; }
+    .result-row .label { color: var(--muted); }
+    .result-row .value { font-weight: 600; font-size: 13.5px; }
+
+    .result-explanation {
+      font-size: 13px; line-height: 1.7; color: var(--text2);
+      padding: 12px 14px;
+      background: var(--bg2);
+      border-radius: 8px;
+      border-left: 3px solid var(--accent);
+    }
+
+    .result-footer {
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; color: var(--muted);
+      flex-wrap: wrap; gap: 8px;
+    }
+    [data-theme="dark"] .result-footer { font-family: var(--font-mono); font-size: 11px; }
+
+    .restart-btn {
+      padding: 8px 20px; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-family: inherit; font-size: 12px;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .restart-btn:hover { background: var(--surface2); border-color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">✈️</div>
+  <h1>Travel Claim Agent</h1>
+  <div class="header-right">
+    <span class="header-sub">AI-Powered Reimbursement Review</span>
+    <button id="theme-toggle" onclick="toggleTheme()" title="Switch theme">
+      <span class="icon" id="theme-icon">☀️</span>
+      <span id="theme-label">Light</span>
+    </button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Hero -->
+  <div id="hero">
+    <div class="hero-icon">🤖</div>
+    <h2>Get your claim approved instantly</h2>
+    <p>Our AI agent reviews your travel expense against company policy and gives you a structured decision in seconds.</p>
+    <div class="hero-pills">
+      <span class="pill">✓ Policy validation</span>
+      <span class="pill">✓ Duplicate detection</span>
+      <span class="pill">✓ Threshold checks</span>
+      <span class="pill">✓ Instant decision</span>
+    </div>
+    <button class="start-btn" onclick="startChat()">Submit a Claim →</button>
+  </div>
+
+  <!-- Chat -->
+  <div id="chat-view">
+    <div id="messages"></div>
+    <div id="loader">
+      <div class="spinner"></div>
+      <p>Agent is reviewing your claim…</p>
+    </div>
+    <div id="input-area">
+      <input id="user-input" type="text" placeholder="Type your answer…" autocomplete="off" />
+      <button id="send-btn" onclick="handleSend()" title="Send">➤</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Theme toggle ──────────────────────────────────────────────────────────────
+const html = document.documentElement;
+let isDark = true;
+
+function toggleTheme() {
+  isDark = !isDark;
+  html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('theme-icon').textContent  = isDark ? '☀️' : '🌙';
+  document.getElementById('theme-label').textContent = isDark ? 'Light' : 'Dark';
+}
+
+// ── Question flow ──────────────────────────────────────────────────────────────
+const QUESTIONS = [
+  {
+    key: 'claim_id',
+    ask: 'Let\'s get started! Please enter a **Claim ID** for this request.\n_Example: CLM-2024-001_',
+    hint: 'e.g. CLM-2024-001',
+    validate: v => v.trim().length >= 2 ? null : 'Claim ID must be at least 2 characters.'
+  },
+  {
+    key: 'employee_id',
+    ask: 'What is your **Employee ID**?\n_Example: EMP1001_',
+    hint: 'e.g. EMP1001',
+    validate: v => /^EMP\d+$/i.test(v.trim()) ? null : 'Employee ID must be like EMP1001 (EMP followed by numbers).'
+  },
+  {
+    key: 'employee_name',
+    ask: 'What is your **full name**?',
+    hint: 'e.g. Priya Sharma',
+    validate: v => v.trim().length >= 2 ? null : 'Please enter your full name.'
+  },
+  {
+    key: 'date',
+    ask: 'What is the **date** of this expense?\n_Format: YYYY-MM-DD — year first, then month (01–12), then day_',
+    hint: 'YYYY-MM-DD  e.g. 2026-07-01  (year-month-day)',
+    validate: v => {
+      const s = v.trim();
+      // Step 1: strict format — month 01-12, day 01-31
+      if (!/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(s))
+        return 'Use YYYY-MM-DD format with a valid month (01–12) and day (01–31). E.g. 2026-07-01';
+      // Step 2: make sure it is a real calendar date (catches Feb 30 etc.)
+      const [y, m, d] = s.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      if (dt.getFullYear() !== y || dt.getMonth() + 1 !== m || dt.getDate() !== d)
+        return `"${s}" is not a real date. Double-check the day and month values.`;
+      return null;
+    }
+  },
+  {
+    key: 'category',
+    ask: 'What is the **expense category**? Choose one or type it.',
+    hint: 'meal / hotel / transport / flight / other',
+    chips: ['meal', 'hotel', 'transport', 'flight', 'other'],
+    validate: v => v.trim().length > 0 ? null : 'Please select or type a category.'
+  },
+  {
+    key: 'amount',
+    ask: 'What is the **total amount** claimed (in ₹)?',
+    hint: 'e.g. 4500',
+    validate: v => {
+      const n = parseFloat(v);
+      return (!isNaN(n) && n > 0) ? null : 'Please enter a valid amount greater than 0.';
+    }
+  },
+  {
+    key: 'vendor',
+    ask: 'Who is the **vendor / merchant**?\n_E.g. Hotel Taj, Ola Cabs, Air India_',
+    hint: 'e.g. Hotel Taj Mumbai',
+    validate: v => v.trim().length >= 2 ? null : 'Please enter the vendor name.'
+  },
+  {
+    key: 'city',
+    ask: 'Which **city** did this expense occur in? _(optional — press Enter to skip)_',
+    hint: 'e.g. Mumbai, Delhi, Pune…',
+    validate: () => null
+  },
+  {
+    key: 'receipt_attached',
+    ask: 'Did you attach a **receipt** for this expense?',
+    chips: ['Yes', 'No'],
+    validate: v => (['yes','no'].includes(v.toLowerCase())) ? null : 'Please select Yes or No.'
+  },
+  {
+    key: 'description',
+    ask: 'Any additional **description**? _(optional — press Enter to skip)_',
+    hint: 'Brief description…',
+    validate: () => null
+  }
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let step = 0;
+const answers = {};
+
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const messagesEl = document.getElementById('messages');
+const inputEl    = document.getElementById('user-input');
+const sendBtn    = document.getElementById('send-btn');
+const loaderEl   = document.getElementById('loader');
+const chatView   = document.getElementById('chat-view');
+const hero       = document.getElementById('hero');
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const scrollBottom = () => { messagesEl.scrollTop = messagesEl.scrollHeight; };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+function formatMd(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/_(.+?)_/g, '<em>$1</em>')
+    .replace(/\n/g, '<br/>');
+}
+
+function addMessage(role, html, extra = '') {
+  const wrap = document.createElement('div');
+  wrap.className = `msg ${role}`;
+  const avatar = role === 'agent' ? '🤖' : '👤';
+  wrap.innerHTML = `<div class="avatar">${avatar}</div><div class="bubble">${html}${extra}</div>`;
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+  return wrap;
+}
+
+function showTyping() {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg agent'; wrap.id = 'typing-indicator';
+  wrap.innerHTML = `<div class="avatar">🤖</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  messagesEl.appendChild(wrap); scrollBottom();
+}
+
+function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
+
+async function agentSay(html, extraHtml = '', delay = 550) {
+  showTyping(); await wait(delay); removeTyping();
+  addMessage('agent', html, extraHtml);
+}
+
+// ── Chips ─────────────────────────────────────────────────────────────────────
+function makeChips(opts) {
+  return `<div class="chips">${opts.map(o => `<button class="chip" onclick="chipSelect('${o}')">${o}</button>`).join('')}</div>`;
+}
+function chipSelect(val) { inputEl.value = val; handleSend(); }
+
+// ── Flow ──────────────────────────────────────────────────────────────────────
+function startChat() {
+  hero.style.display = 'none';
+  chatView.classList.add('visible');
+  askQuestion(0);
+  inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
+  inputEl.focus();
+}
+
+async function askQuestion(index) {
+  const q = QUESTIONS[index];
+  await agentSay(formatMd(q.ask), q.chips ? makeChips(q.chips) : '', index === 0 ? 350 : 480);
+  inputEl.placeholder = q.hint || 'Type your answer…';
+}
+
+function handleSend() {
+  const raw = inputEl.value.trim();
+  if (!raw) return;
+
+  const q = QUESTIONS[step];
+  const err = q.validate(raw);
+  document.getElementById('inline-error')?.remove();
+
+  if (err) {
+    const el = document.createElement('div');
+    el.id = 'inline-error'; el.className = 'error-note';
+    el.textContent = '⚠ ' + err;
+    document.getElementById('input-area').insertAdjacentElement('beforebegin', el);
+    return;
+  }
+
+  addMessage('user', raw);
+  inputEl.value = ''; inputEl.placeholder = 'Type your answer…';
+
+  if (q.key === 'receipt_attached') answers[q.key] = raw.toLowerCase() === 'yes';
+  else if (q.key === 'amount')      answers[q.key] = parseFloat(raw);
+  else                               answers[q.key] = raw;
+
+  step++;
+  if (step < QUESTIONS.length) askQuestion(step);
+  else submitClaim();
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────────
+async function submitClaim() {
+  inputEl.disabled = true; sendBtn.disabled = true;
+  inputEl.placeholder = 'Processing…';
+
+  await agentSay('✅ Got all the details! Running this through the AI agent now…', '', 300);
+  await wait(350);
+
+  loaderEl.classList.add('visible'); scrollBottom();
+
+  let data;
+  try {
+    const resp = await fetch('/approve-claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(answers)
+    });
+    if (!resp.ok) {
+      const body = await resp.json().catch(() => ({}));
+      throw new Error(body.detail || `Server error ${resp.status}`);
+    }
+    data = await resp.json();
+  } catch (err) {
+    loaderEl.classList.remove('visible');
+    await agentSay(`❌ <strong>Something went wrong:</strong><br/>${err.message}<br/><em style="font-size:12px;color:var(--muted)">Please wait a moment and try again.</em>`);
+
+    // Show action buttons — no page refresh needed
+    const actionWrap = document.createElement('div');
+    actionWrap.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;padding:4px 0 8px;';
+    actionWrap.innerHTML = `
+      <button class="restart-btn" onclick="retrySubmit()" style="border-color:var(--accent);color:var(--accent)">⟳ Retry same data</button>
+      <button class="restart-btn" onclick="restartChat()">↺ Start over</button>`;
+    messagesEl.appendChild(actionWrap);
+    scrollBottom();
+
+    restoreInput();
+    // Hide input while buttons are shown (retry/restart replaces it)
+    document.getElementById('input-area').style.display = 'none';
+    return;
+  }
+
+  loaderEl.classList.remove('visible');
+  await wait(180);
+  showResult(data);
+}
+
+// ── Result card ───────────────────────────────────────────────────────────────
+const decisionEmoji = d => ({ APPROVED:'✅', PARTIALLY_APPROVED:'🔶', REJECTED:'❌', MANUAL_REVIEW:'🔵' }[d] || '📋');
+
+function showResult(d) {
+  const missing = d.missing_documents?.length ? d.missing_documents.join(', ') : '—';
+  const manualRow = d.manual_review_reason
+    ? `<div class="result-row"><span class="label">Review Reason</span><span class="value" style="color:var(--yellow)">${d.manual_review_reason}</span></div>` : '';
+
+  const card = `
+    <div class="result-card">
+      <div class="result-header">
+        <span style="font-size:20px">${decisionEmoji(d.decision)}</span>
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Claim ${d.claim_id}</div>
+          <span class="decision-badge badge-${d.decision}">${d.decision.replace(/_/g,' ')}</span>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Confidence</div>
+          <div style="font-size:13px;font-weight:600">${d.confidence}</div>
+        </div>
+      </div>
+      <div class="result-body">
+        <div class="result-row"><span class="label">Requested</span><span class="value">₹${d.requested_amount.toLocaleString('en-IN')}</span></div>
+        <div class="result-row"><span class="label">Approved</span><span class="value" style="color:var(--green)">₹${d.approved_amount.toLocaleString('en-IN')}</span></div>
+        <div class="result-row"><span class="label">Deducted</span><span class="value" style="color:var(--red)">₹${d.deducted_amount.toLocaleString('en-IN')}</span></div>
+        <div class="result-row"><span class="label">Missing Documents</span><span class="value">${missing}</span></div>
+        ${manualRow}
+        <div class="result-row"><span class="label">Policy Applied</span><span class="value" style="color:var(--accent)">${d.policy_reference}</span></div>
+        <div class="result-explanation">${d.explanation}</div>
+      </div>
+      <div class="result-footer">
+        <span>Tools: ${(d.tools_used||[]).join(' · ') || '—'}</span>
+        <button class="restart-btn" onclick="restartChat()">Submit another claim →</button>
+      </div>
+    </div>`;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'msg agent';
+  wrap.innerHTML = `<div class="avatar">🤖</div><div style="max-width:100%;flex:1">${card}</div>`;
+  messagesEl.appendChild(wrap); scrollBottom();
+  document.getElementById('input-area').style.display = 'none';
+}
+
+// ── Retry (same data) ────────────────────────────────────────────────────────
+function retrySubmit() {
+  // Remove action buttons
+  messagesEl.querySelectorAll('div[style*="display:flex;gap:8px"]').forEach(el => el.remove());
+  document.getElementById('input-area').style.display = 'flex';
+  submitClaim();
+}
+
+// ── Restart ───────────────────────────────────────────────────────────────────
+function restartChat() {
+  step = 0;
+  Object.keys(answers).forEach(k => delete answers[k]);
+  messagesEl.innerHTML = '';
+  loaderEl.classList.remove('visible');
+  document.getElementById('input-area').style.display = 'flex';
+  restoreInput(); askQuestion(0);
+}
+function restoreInput() {
+  inputEl.disabled = false; sendBtn.disabled = false;
+  inputEl.placeholder = 'Type your answer…'; inputEl.focus();
+}
+</script>
+</body>
+</html>

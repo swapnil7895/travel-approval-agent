@@ -19,6 +19,7 @@ This is a working prototype of an AI-assisted Travel Reimbursement Approval Agen
     # source venv/bin/activate
     pip install -r requirements.txt
     ```
+    > **Note**: `aiofiles` is required by FastAPI's `StaticFiles` to serve the web UI.
 
 3.  **Set up environment variables:**
     Copy `.env.example` to `.env` and configure your API keys and models:
@@ -36,14 +37,34 @@ To process the sample claims provided in `samples/sample_claims.json` and save t
 python cli.py
 ```
 
-### Option 2: Run via FastAPI (Interactive API)
+### Option 2: Run via FastAPI (Interactive API + Web UI)
 To start the API server:
 ```bash
 uvicorn app.main:app --reload
 ```
-- Open http://127.0.0.1:8000/docs to access the Swagger UI.
+- Open **http://127.0.0.1:8000** to access the **chat-style web UI** — submit claims interactively through a guided conversation.
+- Open http://127.0.0.1:8000/docs to access the Swagger UI for raw API access.
 - Use the `/approve-claim` endpoint to POST a new claim and get the decision.
 - Use the `/health` endpoint to check if the server is running.
+
+### Web UI Preview
+We added a modern, chat-based UI (with both Light and Dark modes) to make submitting claims incredibly easy.
+
+<p align="center">
+  <img src="docs/Screenshot_home_page.png" width="400" alt="Home Page" />
+  <img src="docs/Screenshot_agent_chat.png" width="400" alt="Agent Chat" />
+</p>
+<p align="center">
+  <img src="docs/Screenshot_agent_processing.png" width="400" alt="Agent Processing" />
+  <img src="docs/Screenshot_agent_result.png" width="400" alt="Agent Result" />
+</p>
+<p align="center">
+  <img src="docs/Screenshot_darl_light_mode.png" width="800" alt="Dark and Light Mode" />
+</p>
+
+## Error Handling & Reliability
+- **Graceful Failures:** If the AI agent hits a quota limit or fails to return valid JSON, the application catches the error and surfaces a clean, readable message to the user (instead of crashing or dumping raw stack traces).
+- **UI Recovery:** The chat UI includes built-in "**Retry same data**" and "**Start over**" buttons, allowing users to effortlessly retry an API call if a transient error or quota limit is hit, without needing to refresh the page or re-type data.
 
 ## Design Choices & Architecture
 

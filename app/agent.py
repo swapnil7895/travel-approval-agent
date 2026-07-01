@@ -113,12 +113,13 @@ def process_claim(claim_dict: dict) -> ClaimDecision:
     # Clean up response to ensure it's valid JSON
     import re
     match = re.search(r'\{.*\}', response, re.DOTALL)
-    if match:
-        response = match.group(0)
-    else:
-        response = "{}" # Fallback if no JSON found
-        
-    decision_dict = json.loads(response)
+    if not match:
+        logger.error(f"Agent returned no valid JSON for claim ID: {claim_id}. Raw response: {response[:200]}")
+        raise ValueError(
+            "The AI agent did not return a valid decision. "
+            "This is usually caused by an API quota limit. Please wait a moment and try again."
+        )
+
+    decision_dict = json.loads(match.group(0))
     logger.info(f"Finished processing claim ID: {claim_id} with decision: {decision_dict.get('decision')}")
-    # Filter out missing keys for ClaimDecision model if needed, or let Pydantic handle it
     return ClaimDecision(**decision_dict)

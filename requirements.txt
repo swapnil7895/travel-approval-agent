@@ -1,7 +1,9 @@
 langchain
 langchain-google-genai
 google-generativeai
+langgraph
 fastapi
 uvicorn
 pydantic
 python-dotenv
+aiofiles
